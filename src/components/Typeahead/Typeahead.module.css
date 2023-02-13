@@ -1,3 +1,11 @@
 .typeahead {
 
 }
+
+.active-option {
+  font-weight: bold;
+}
+
+.no-option-found {
+
+}
