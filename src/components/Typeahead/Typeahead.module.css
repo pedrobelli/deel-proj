@@ -1,11 +1,58 @@
 .typeahead {
-
+  text-align: center;
 }
 
-.active-option {
-  font-weight: bold;
+.typeahead .title {
+  margin-top: 135px;
+  margin-bottom: 8px;
+}
+
+.input-wrapper {
+  width: fit-content;
+  margin: auto;
+}
+
+.input-wrapper .input {
+  width: 600px;
+  height: 25px;
+  border-width: 1px;
+  border-radius: 5px;
+  padding: 1px 6px;
+}
+
+.input-wrapper .tip {
+  margin: 0;
+  font-size: 12px;
+  text-align: left;
+}
+
+ul.options {
+  display: block;
+  list-style: none;
+  width: 600px;
+  transition: width 0.3s;
+  margin: auto;
+  position: relative;
+  padding-left: 0;
+}
+
+ul.options li {
+  display: block;
+  background: #FFFFFF;
+  padding: 5px 0;
+  font-size: 15px;
+  width: 100%;
+}
+ul.options li:hover {
+  background: #eeeeee;
+  cursor: pointer;
+}
+
+ul.options li.active-option {
+  background: #eeeeee;
+  font-size: 20px;
 }
 
 .no-option-found {
-
+  font-weight: bold;
 }

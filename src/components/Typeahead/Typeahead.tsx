@@ -2,6 +2,11 @@ import { useState } from "react";
 
 import styles from "./Typeahead.module.css";
 
+interface BoldResult {
+  results: string[];
+  resultFindCount: string[];
+}
+
 const Typeahead = () => {
   const tempOptions: string[] = [
     "Lord of the Rings",
@@ -18,20 +23,24 @@ const Typeahead = () => {
   const [activeOption, setActiveOption] = useState(0);
   const [showOptions, setShowOptions] = useState(false);
 
-  const changeHandler = (event: any) => {
-    const tempText = event.target.value;
-    setTypeaheadText(tempText);
+  const fetchMovies = async (query: string): Promise<string[]> => {
+    return await tempOptions.filter(
+      (option: any) =>
+        option.toLowerCase().indexOf(query.toLowerCase()) > -1
+    );
+  }
 
-    if (tempText.length > 2) {
-      setOptions(
-        tempOptions.filter(
-          (option: any) =>
-            option.toLowerCase().indexOf(typeaheadText.toLowerCase()) > -1
-        )
-      );
+  const changeHandler = async (event: any) => {
+    const query = event.target.value;
+    setTypeaheadText(query);
+
+    if (query.length > 2) {
+      const movies = await fetchMovies(query);
+
+      setOptions(movies);
       setShowOptions(true);
       setActiveOption(0);
-    } else if (tempText.length <= 2) {
+    } else if (query.length <= 2) {
       setShowOptions(false);
     }
   };
@@ -62,33 +71,74 @@ const Typeahead = () => {
     setActiveOption(0);
   };
 
+  // function that returns a list of places where the text was found and the occurrences
+  const boldResultPart = (optionName: string): BoldResult => {
+    const regex = new RegExp(typeaheadText, "ig");
+    return {
+      results: optionName.split(regex),
+      resultFindCount: [...optionName.matchAll(regex)].map((x) => x[0]),
+    };
+  };
+
   const showOptionsList = () => {
     if (options.length) {
-      return <ul className="options">
-        {options.map((optionName, index) => {
-          return (
-            <li className={`${index === activeOption && styles['active-option']}`} key={optionName} onClick={clickHandler}>
-              {optionName}
-            </li>
-          );
-        })}
-      </ul>
+      return (
+        <ul className={styles.options}>
+          {options.map((optionName, index) => {
+            const { results, resultFindCount } = boldResultPart(optionName);
+
+            const bolded = results.map((value, index) =>
+              index > 0 ? (
+                <span key={index}>
+                  {<strong>{resultFindCount[index - 1]}</strong>}
+                  {value}
+                </span>
+              ) : (
+                value
+              )
+            );
+
+            return (
+              <li
+                className={`${
+                  index === activeOption && styles["active-option"]
+                }`}
+                key={optionName}
+                onClick={clickHandler}
+              >
+                {bolded}
+              </li>
+            );
+          })}
+        </ul>
+      );
     } else {
       return (
-        <div className={styles['no-option-found']}>
+        <div className={styles["no-option-found"]}>
           <p>No option found!</p>
         </div>
       );
     }
-
   };
 
   return (
     <>
       <div className={styles.typeahead}>
-        <input type="text" value={typeaheadText} onChange={changeHandler} onKeyDown={keyDownHandler}/>
+        <h1 className={styles.title}>Type to search for a movie</h1>
+        <div className={styles["input-wrapper"]}>
+          <p className={styles.tip}>
+            *the search will start after you type 3 characters
+          </p>
+          <input
+            type="text"
+            className={styles.input}
+            value={typeaheadText}
+            onChange={changeHandler}
+            onKeyDown={keyDownHandler}
+          />
+        </div>
         {showOptions && showOptionsList()}
-        {selectedMovie.length > 0 && <p>{selectedMovie}</p>}
+        {selectedMovie.length > 0 && <p>You selected the movie: <strong>{selectedMovie}</strong></p>}
       </div>
     </>
   );
