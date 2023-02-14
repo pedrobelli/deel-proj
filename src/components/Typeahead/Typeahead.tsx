@@ -1,6 +1,8 @@
 import { useState } from "react";
 
 import styles from "./Typeahead.module.css";
+import useHttp from "../../hooks/use-http";
+import { Show } from "../../models/Show";
 
 interface BoldResult {
   results: string[];
@@ -8,36 +10,22 @@ interface BoldResult {
 }
 
 const Typeahead = () => {
-  const tempOptions: string[] = [
-    "Lord of the Rings",
-    "Star Wars",
-    "Star Wars II",
-    "Star Wars III",
-    "Everything Everywhere All at Once",
-    "Spider Man No Way Home",
-  ];
+  const { sendRequest } = useHttp();
 
   const [typeaheadText, setTypeaheadText] = useState("");
-  const [selectedMovie, setSelectedMovie] = useState("");
-  const [options, setOptions] = useState<string[]>([]);
+  const [selectedShow, setSelectedShow] = useState<Show>(new Show());
+  const [options, setOptions] = useState<Show[]>([]);
   const [activeOption, setActiveOption] = useState(0);
   const [showOptions, setShowOptions] = useState(false);
-
-  const fetchMovies = async (query: string): Promise<string[]> => {
-    return await tempOptions.filter(
-      (option: any) =>
-        option.toLowerCase().indexOf(query.toLowerCase()) > -1
-    );
-  }
 
   const changeHandler = async (event: any) => {
     const query = event.target.value;
     setTypeaheadText(query);
 
     if (query.length > 2) {
-      const movies = await fetchMovies(query);
+      const shows = await sendRequest(query);
 
-      setOptions(movies);
+      setOptions(shows);
       setShowOptions(true);
       setActiveOption(0);
     } else if (query.length <= 2) {
@@ -47,7 +35,7 @@ const Typeahead = () => {
 
   const keyDownHandler = (event: any) => {
     if (event.keyCode === 13) {
-      setSelectedMovie(options[activeOption]);
+      setSelectedShow(options[activeOption]);
       setTypeaheadText("");
       setShowOptions(false);
       setActiveOption(0);
@@ -65,7 +53,7 @@ const Typeahead = () => {
   };
 
   const clickHandler = (event: any) => {
-    setSelectedMovie(event.currentTarget.innerText);
+    setSelectedShow(event.currentTarget.innerText);
     setTypeaheadText("");
     setShowOptions(false);
     setActiveOption(0);
@@ -84,8 +72,8 @@ const Typeahead = () => {
     if (options.length) {
       return (
         <ul className={styles.options}>
-          {options.map((optionName, index) => {
-            const { results, resultFindCount } = boldResultPart(optionName);
+          {options.map((option, index) => {
+            const { results, resultFindCount } = boldResultPart(option.title);
 
             const bolded = results.map((value, index) =>
               index > 0 ? (
@@ -103,7 +91,7 @@ const Typeahead = () => {
                 className={`${
                   index === activeOption && styles["active-option"]
                 }`}
-                key={optionName}
+                key={option.id}
                 onClick={clickHandler}
               >
                 {bolded}
@@ -124,7 +112,7 @@ const Typeahead = () => {
   return (
     <>
       <div className={styles.typeahead}>
-        <h1 className={styles.title}>Type to search for a movie</h1>
+        <h1 className={styles.title}>Type to search for a show</h1>
         <div className={styles["input-wrapper"]}>
           <p className={styles.tip}>
             *the search will start after you type 3 characters
@@ -138,7 +126,7 @@ const Typeahead = () => {
           />
         </div>
         {showOptions && showOptionsList()}
-        {selectedMovie.length > 0 && <p>You selected the movie: <strong>{selectedMovie}</strong></p>}
+        {selectedShow.id && <p>You selected the show: <strong>{selectedShow.title} ({selectedShow.year})</strong> </p>}
       </div>
     </>
   );
